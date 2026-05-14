@@ -8,6 +8,9 @@ import Root from "./Layout/Root.jsx";
 import Container from "./Component/Container/Container.jsx";
 import Register from "./Component/Register/Register.jsx";
 import Login from "./Component/Login/Login.jsx";
+import Home from "./Component/Home/Home.jsx";
+import DashboardLayout from "./Layout/DashboardLayout.jsx";
+import Facebook from "./Component/Ads/Facebook.jsx";
 
 const router = createBrowserRouter([
   {
@@ -16,7 +19,12 @@ const router = createBrowserRouter([
     children:[
       {
         index:true,
+        Component:Home
+      },
+      {
+        path:"/container",
         Component:Container
+
       },
       {
         path:"/register",
@@ -25,9 +33,24 @@ const router = createBrowserRouter([
       {
         path:"/login",
         Component:Login
-      }
+      },
     ]
   },
+  {
+    path:"/dashboard",
+    Component:DashboardLayout,
+    children:[
+      {
+        index:true,
+        Component:Container
+      },
+      {
+        path:"/dashboard/facebook",
+        Component:Facebook
+      }
+    ]
+
+  }
 ]);
 
 createRoot(document.getElementById("root")).render(
