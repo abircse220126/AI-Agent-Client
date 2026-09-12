@@ -1,5 +1,8 @@
 import React, { useRef, useState } from "react";
 import Preview from "../Preview/Preview";
+
+import EditorTools from "../../EditorTools/EditorTools";
+
 // import { GoogleGenAI } from "@google/genai";
 // import { API_KEY } from "../helper";
 
@@ -36,8 +39,6 @@ const cardStyles = [
   `relative rounded-2xl overflow-hidden border border-white/10 backdrop-blur-xl shadow-2xl p-8 transition-all duration-300 hover:scale-[1.03] hover:shadow-sky-500/20 bg-gradient-to-br from-sky-900/40 via-indigo-900/30 to-slate-900/60`,
 ];
 
-// const ai = new GoogleGenAI({ apiKey: API_KEY });
-
 let usedIndexes = [];
 const Container = () => {
   const [prompt, setPrompt] = useState("");
@@ -48,8 +49,7 @@ const Container = () => {
   const [analysis, setAnalysis] = useState("");
   const [intentState, setIntentState] = useState("");
   const [showPreviewTop, setShowPreviewTop] = useState(false);
-
-  // 🔥 UNIQUE RANDOM STYLE FUNCTION
+  const [isEditing, setIsEditing] = useState(false);
 
   function getUniqueStyle(cardStyles) {
     if (usedIndexes.length === cardStyles.length) {
@@ -107,7 +107,6 @@ const Container = () => {
     setIntentState(intent);
     setConversionScore(data.score);
     setAnalysis(data.analysis);
-
     let html = data.html;
 
     if (!data.html) {
@@ -115,17 +114,11 @@ const Container = () => {
       return;
     }
 
-    // if (!html || typeof html !== "string") {
-    //   console.error("Invalid HTML");
-    //   setLoading(false);
-    //   return;
-    // }
-
     // ❌ remove bad backgrounds
     html = html.replace(/bg-(black|slate-\d+|gray-\d+|neutral-\d+)/g, "");
 
     // ❌ remove inline background
-    html = html.replace(/background[^;"]+;?/gi, "");
+    // html = html.replace(/background[^;"]+;?/gi, "");
 
     // ✅ ONLY apply gradient to card (NOT all div)
     html = html.replace(
@@ -190,40 +183,137 @@ const Container = () => {
   return (
     <>
       <div className="bg-black">
-        {showPreviewTop && (
+        {/* {showPreviewTop && (
+
           <div ref={previewRef}>
             <Preview aicode={aicode} loading={loading} />
           </div>
-        )}
 
-        {conversionScore && (
-          <div className="w-full max-w-3xl mx-auto mt-6 px-4">
-            <div className="flex items-center justify-between bg-slate-900 border border-white/10 rounded-xl px-5 py-3 shadow-md">
-              <div className="text-sm text-gray-300">
-                🎯 Intent:
-                <span className="text-indigo-400 font-semibold ml-1">
-                  {intentState}
-                </span>
-              </div>
+        )} */}
 
-              <div className="text-sm text-gray-300">
-                ⚡ Score:
-                <span className="text-green-400 font-semibold ml-1">
-                  {conversionScore}/100
-                </span>
-              </div>
-            </div>
+        {showPreviewTop && (
+          <div
+            ref={previewRef}
+            className=" w-full max-w-[1450px] mx-auto mt-16 px-4 "
+          >
+            {" "}
+            <div
+              className={` flex flex-col xl:flex-row items-start gap-5 transition-all duration-500 `}
+            >
+              {" "}
+              <div
+                className={` transition-all duration-500 ease-in-out w-full ${isEditing ? "xl:w-[70%]" : "xl:w-full"} `}
+              >
+                {" "}
+                <Preview
+                  aicode={aicode}
+                  loading={loading}
+                  onEdit={() => setIsEditing(true)}
+                />{" "}
+                {conversionScore && (
+                  <div className="w-full max-w-3xl mx-auto mt-6 px-4">
+                    <div className="flex items-center justify-between bg-slate-900 border border-white/10 rounded-xl px-5 py-3 shadow-md">
+                      <div className="text-sm text-gray-300">
+                        🎯 Intent:
+                        <span className="text-indigo-400 font-semibold ml-1">
+                          {intentState}
+                        </span>
+                      </div>
+
+                      <div className="text-sm text-gray-300">
+                        ⚡ Score:
+                        <span className="text-green-400 font-semibold ml-1">
+                          {conversionScore}/100
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="w-full flex flex-col justify-center items-center bg-black px-4">
+                  <div className="w-full max-w-3xl mx-auto mt-12 px-4 relative">
+                    <textarea
+                      id="ai-command"
+                      disabled={loading}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      placeholder="Type your command here... e.g., Create a modern portfolio website with dark theme"
+                      className="w-full h-10 sm:h-18 p-4 pr-14 rounded-xl bg-gray-900 border border-gray-700 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none transition-shadow shadow-sm hover:shadow-md"
+                    ></textarea>
+
+                    {prompt && (
+                      <button
+                        onClick={getResponse}
+                        disabled={loading}
+                        className={`absolute bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full 
+              bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg
+              transition-all duration-300
+              ${loading ? "cursor-not-allowed opacity-70" : "hover:scale-110"}`}
+                      >
+                        {loading ? (
+                          // Spinner icon
+                          <svg
+                            className="w-5 h-5 animate-spin"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                            />
+                          </svg>
+                        ) : (
+                          // Arrow icon
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 19V5m0 0l-7 7m7-7l7 7"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+              </div>{" "}
+              {isEditing && (
+                <div className=" w-full xl:w-[30%] xl:sticky xl:top-5 transition-all duration-500 animate-[fadeIn_.3s_ease-in-out] ">
+                  {" "}
+                  <EditorTools
+                    code={aicode}
+                    setCode={Setaicode}
+                    onClose={() => setIsEditing(false)}
+                  />{" "}
+                </div>
+              )}{" "}
+            </div>{" "}
           </div>
         )}
 
-        <div className="w-full pt-10 flex flex-col justify-center items-center bg-black px-4">
+        <div className="w-full flex flex-col justify-center items-center bg-black px-4">
           <div className="w-full max-w-3xl mx-auto mt-12 px-4 relative">
             <textarea
               id="ai-command"
               disabled={loading}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Type your command here... e.g., Create a modern portfolio website with dark theme"
-              className="w-full h-30 sm:h-38 p-4 pr-14 rounded-xl bg-gray-900 border border-gray-700 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none transition-shadow shadow-sm hover:shadow-md"
+              className="w-full h-10 sm:h-18 p-4 pr-14 rounded-xl bg-gray-900 border border-gray-700 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none transition-shadow shadow-sm hover:shadow-md"
             ></textarea>
 
             {prompt && (
@@ -278,14 +368,43 @@ const Container = () => {
           </div>
         </div>
 
-
-        {/* <div ref={previewRef}>
-          <Preview aicode={aicode} loading={loading}></Preview>
-        </div> */}
-
-        {!showPreviewTop && (
+        {/* {!showPreviewTop && (
           <div ref={previewRef}>
             <Preview aicode={aicode} loading={loading} />
+          </div>
+        )} */}
+
+        {!showPreviewTop && (
+          <div
+            ref={previewRef}
+            className=" w-full max-w-[1450px] mx-auto mt-16 px-4 "
+          >
+            {" "}
+            <div className=" flex flex-col xl:flex-row items-start gap-5 ">
+              {" "}
+              {/* PREVIEW */}{" "}
+              <div
+                className={` w-full transition-all duration-500 ${isEditing ? "xl:w-[70%]" : "xl:w-full"} `}
+              >
+                {" "}
+                <Preview
+                  aicode={aicode}
+                  loading={loading}
+                  onEdit={() => setIsEditing(true)}
+                />{" "}
+              </div>{" "}
+              {/* EDITOR */}{" "}
+              {isEditing && (
+                <div className=" w-full xl:w-[30%] xl:sticky xl:top-5 ">
+                  {" "}
+                  <EditorTools
+                    code={aicode}
+                    setCode={Setaicode}
+                    onClose={() => setIsEditing(false)}
+                  />{" "}
+                </div>
+              )}{" "}
+            </div>{" "}
           </div>
         )}
       </div>

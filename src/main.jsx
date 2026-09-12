@@ -21,15 +21,17 @@ const router = createBrowserRouter([
         index:true,
         Component:Home
       },
+
       {
         path:"/container",
         Component:Container
-
       },
+
       {
         path:"/register",
         Component:Register
       },
+
       {
         path:"/login",
         Component:Login
@@ -40,12 +42,14 @@ const router = createBrowserRouter([
     path:"/dashboard",
     Component:DashboardLayout,
     children:[
+      
       {
         index:true,
         Component:Container
       },
+
       {
-        path:"/dashboard/facebook",
+        path:"/dashboard/ad-creative",
         Component:Facebook
       }
     ]
