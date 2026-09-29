@@ -1,11 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import Sidebar from "../Component/Sidebar/Sidebar";
 import DashboardNavbar from "../Component/DashboardNavbar/DashboardNavbar";
 import { Outlet } from "react-router";
 
 const DashboardLayout = () => {
-  
   const [menuOpen, setMenuOpen] = useState(false);
   const [history, setHistory] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -39,7 +37,7 @@ const DashboardLayout = () => {
 
   return (
     <div className="min-h-screen bg-black">
-    {/* <div className="h-screen bg-black overflow-hidden"> */}
+      {/* <div className="h-screen bg-black overflow-hidden"> */}
       {/* Sidebar */}
       <div
         className={`
@@ -49,7 +47,11 @@ const DashboardLayout = () => {
         md:translate-x-0
       `}
       >
-        <Sidebar history={history} onSelectHistory={openChat}  loadHistory={loadHistory}/>
+        <Sidebar
+          history={history}
+          onSelectHistory={openChat}
+          loadHistory={loadHistory}
+        />
       </div>
 
       {/* overlay */}
@@ -59,18 +61,13 @@ const DashboardLayout = () => {
           onClick={() => setMenuOpen(false)}
         />
       )}
-
-      {/* main */}
-      {/* <div className="md:ml-64 flex flex-col min-h-screen"> */}
-      <div className="md:ml-64 flex flex-col h-screen">
+      <div className="md:ml-64 flex flex-col min-h-screen">
         <div className="sticky top-0 z-20">
           <DashboardNavbar toggleMenu={() => setMenuOpen(!menuOpen)} />
         </div>
 
-        {/* <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6"> */}
-        <div className="flex-1 overflow-hidden px-4 md:px-6">
-        
-          <Outlet context={{ selectedChat, setSelectedChat,loadHistory}} />
+        <div className="flex-1 px-4 md:px-6">
+          <Outlet context={{ selectedChat, setSelectedChat, loadHistory }} />
         </div>
       </div>
     </div>

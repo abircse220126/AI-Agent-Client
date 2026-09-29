@@ -113,7 +113,7 @@ const Register = () => {
             </div>
 
             {/* Upload Image */}
-            <div>
+            {/* <div>
               <label className="block text-neutral-400 mb-1 text-sm">
                 Profile Image
               </label>
@@ -129,12 +129,12 @@ const Register = () => {
               hover:file:bg-neutral-800"
               />
             </div>
-             {errors.photo?.type === "required" && <p className="text-white">Photo is Required</p>}
+             {errors.photo?.type === "required" && <p className="text-white">Photo is Required</p>} */}
 
             {/* Register Button */}
             <button
               type="submit"
-              className="w-full bg-cyan-500 text-black py-2 rounded-lg font-semibold
+              className="w-full bg-cyan-500 text-black py-2 rounded-lg font-semibold mt-10
             hover:bg-cyan-400 transition shadow-[0_0_15px_rgba(0,255,255,0.4)]"
             >
               Create Account
