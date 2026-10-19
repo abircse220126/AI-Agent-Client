@@ -10,12 +10,15 @@ import {
   ExternalLink,
   Trash2,
   Edit3,
+  Copy,
+  Check,
 } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const ASSET_BASE_URL =
   import.meta.env.VITE_ASSET_BASE_URL || window.location.origin;
+
 const cardStyles = [
   `relative rounded-2xl overflow-hidden border border-white/10 backdrop-blur-xl shadow-2xl p-8 transition-all duration-300 hover:scale-[1.03] hover:shadow-indigo-500/20 bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-slate-900/60`,
 
@@ -68,8 +71,11 @@ const Container = () => {
 
   const [landingPages, setLandingPages] = useState([]);
 
-  const userEmail = "demo@gmail.com";
+  const [selectedPage, setSelectedPage] = useState(null);
+  const [showUrlModal, setShowUrlModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
+  const userEmail = "demo@gmail.com";
 
   function getUniqueStyle(cardStyles) {
     if (usedIndexes.length === cardStyles.length) {
@@ -116,8 +122,6 @@ const Container = () => {
     setConversionScore("");
     Setaicode("");
 
-    // const res = await fetch("http://localhost:5000/generate", {
-
     const res = await fetch(`${API_BASE_URL}/generate`, {
       method: "POST",
       headers: {
@@ -140,11 +144,6 @@ const Container = () => {
 
     // ❌ remove bad backgrounds
     html = html.replace(/bg-(black|slate-\d+|gray-\d+|neutral-\d+)/g, "");
-
-    // ❌ remove inline background
-    // html = html.replace(/background[^;"]+;?/gi, "");
-
-    // ✅ ONLY apply gradient to card (NOT all div)
     html = html.replace(
       /<div([^>]*)class="([^"]*card[^"]*)"/g,
       (match, divPart, classPart) => {
@@ -194,6 +193,11 @@ const Container = () => {
   `;
 
     Setaicode(wrappedHTML);
+
+    setPrompt("");
+
+    // localStorage.removeItem("affilai_prompt");
+
     setTimeout(() => {
       previewRef.current?.scrollIntoView({
         behavior: "smooth",
@@ -268,6 +272,29 @@ const Container = () => {
     return `${API_BASE_URL}/${page.slug}`;
   }
 
+  function handleShowUrl(page) {
+    setSelectedPage(page);
+    setCopied(false);
+    setShowUrlModal(true);
+  }
+
+  async function handleCopyUrl() {
+    const url = getLandingPageUrl(selectedPage);
+
+    if (!url) return;
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy URL:", error);
+    }
+  }
+
   useEffect(() => {
     if (aicode) {
       localStorage.setItem("affilai_aicode", aicode);
@@ -277,6 +304,8 @@ const Container = () => {
   useEffect(() => {
     if (prompt) {
       localStorage.setItem("affilai_prompt", prompt);
+    } else {
+      localStorage.removeItem("affilai_prompt");
     }
   }, [prompt]);
 
@@ -361,6 +390,7 @@ const Container = () => {
                   <div className="w-full max-w-3xl mx-auto mt-12 px-4 relative">
                     <textarea
                       id="ai-command"
+                      value={prompt}
                       disabled={loading}
                       onChange={(e) => setPrompt(e.target.value)}
                       onKeyDown={(e) => {
@@ -643,39 +673,6 @@ const Container = () => {
                         {page.status === "published" ? "Published" : "Draft"}
                       </div>
 
-                      {/* Actual landing page preview */}
-                      {/* {page.html ? (
-                        <iframe
-                          title={getPageTitle(page)}
-                          srcDoc={page.html}
-                          className="
-                    absolute
-                    top-0
-                    left-0
-                    w-full
-                    h-[190px]
-                    border-0
-                    bg-white
-                    pointer-events-none
-                  "
-                          sandbox="allow-scripts"
-                        />
-                      ) : (
-                        <div
-                          className="
-                    w-full
-                    h-full
-                    flex
-                    items-center
-                    justify-center
-                    text-gray-500
-                    text-sm
-                  "
-                        >
-                          No Preview
-                        </div>
-                      )} */}
-
                       {page.html ? (
                         <div
                           className="
@@ -781,55 +778,79 @@ const Container = () => {
                         </div>
 
                         {/* Right actions */}
+
+                        {/* Right actions */}
                         <div className="flex items-center gap-2">
-                          {/* Open page */}
+                          {/* Edit */}
+                          <button
+                            type="button"
+                            title="Edit Landing Page"
+                            onClick={() => {
+                              console.log("Edit page:", page);
+                              // এখানে তোমার edit logic বসাবে
+                            }}
+                            className="
+      w-8
+      h-8
+      rounded-lg
+      flex
+      items-center
+      justify-center
+      text-gray-400
+      hover:text-indigo-400
+      hover:bg-indigo-500/10
+      transition
+    "
+                          >
+                            <Edit3 size={16} />
+                          </button>
+
+                          {/* Delete */}
+                          <button
+                            type="button"
+                            title="Delete Landing Page"
+                            onClick={() => {
+                              console.log("Delete page:", page);
+                              // এখানে delete logic বসাবে
+                            }}
+                            className="
+      w-8
+      h-8
+      rounded-lg
+      flex
+      items-center
+      justify-center
+      text-gray-400
+      hover:text-red-400
+      hover:bg-red-500/10
+      transition
+    "
+                          >
+                            <Trash2 size={16} />
+                          </button>
+
+                          {/* Link */}
                           {pageUrl && (
                             <button
                               type="button"
-                              title="Open Landing Page"
-                              onClick={() => {
-                                window.open(
-                                  pageUrl,
-                                  "_blank",
-                                  "noopener,noreferrer",
-                                );
-                              }}
+                              title="Show Landing Page URL"
+                              onClick={() => handleShowUrl(page)}
                               className="
-                        w-8
-                        h-8
-                        rounded-lg
-                        flex
-                        items-center
-                        justify-center
-                        text-gray-400
-                        hover:text-white
-                        hover:bg-white/10
-                        transition
-                      "
+        w-8
+        h-8
+        rounded-lg
+        flex
+        items-center
+        justify-center
+        text-gray-400
+        hover:text-green-400
+        hover:bg-green-500/10
+        transition
+      "
                             >
                               <Link2 size={16} />
                             </button>
                           )}
-
-                          {/* More button */}
-                          <button
-                            type="button"
-                            title="More"
-                            className="
-                      w-8
-                      h-8
-                      rounded-lg
-                      flex
-                      items-center
-                      justify-center
-                      text-gray-400
-                      hover:text-white
-                      hover:bg-white/10
-                      transition
-                    "
-                          >
-                            <MoreHorizontal size={18} />
-                          </button>
                         </div>
                       </div>
                     </div>
@@ -838,6 +859,129 @@ const Container = () => {
               })}
             </div>
           </section>
+        )}
+
+        {/* =====================================================
+    URL MODAL
+===================================================== */}
+
+        {showUrlModal && selectedPage && (
+          <div
+            className="
+      fixed
+      inset-0
+      z-[9999]
+      flex
+      items-center
+      justify-center
+      bg-black/70
+      backdrop-blur-sm
+      px-4
+    "
+            onClick={() => setShowUrlModal(false)}
+          >
+            <div
+              className="
+        w-full
+        max-w-lg
+        rounded-2xl
+        border
+        border-white/10
+        bg-[#111116]
+        shadow-2xl
+        p-6
+      "
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">
+                    Landing Page URL
+                  </h3>
+
+                  <p className="text-sm text-gray-400 mt-1">
+                    Share this landing page with others
+                  </p>
+                </div>
+
+                {/* Close */}
+                <button
+                  type="button"
+                  onClick={() => setShowUrlModal(false)}
+                  className="
+            w-8
+            h-8
+            rounded-lg
+            flex
+            items-center
+            justify-center
+            text-gray-400
+            hover:text-white
+            hover:bg-white/10
+            transition
+          "
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* URL */}
+              <div
+                className="
+          flex
+          items-center
+          gap-2
+          rounded-xl
+          border
+          border-white/10
+          bg-black/40
+          p-2
+        "
+              >
+                <input
+                  type="text"
+                  readOnly
+                  value={getLandingPageUrl(selectedPage) || ""}
+                  className="
+            flex-1
+            min-w-0
+            bg-transparent
+            px-3
+            py-2
+            text-sm
+            text-gray-300
+            outline-none
+          "
+                  onFocus={(e) => e.target.select()}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleCopyUrl}
+                  title={copied ? "Copied" : "Copy URL"}
+                  className="
+    shrink-0
+    w-10
+    h-10
+    rounded-lg
+    flex
+    items-center
+    justify-center
+    border
+    border-white/10
+    bg-transparent
+    text-gray-400
+    hover:text-white
+    hover:bg-white/5
+    transition-all
+  "
+                >
+                  {copied ? <Check size={17} /> : <Copy size={17} />}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </>
