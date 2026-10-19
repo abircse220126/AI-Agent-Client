@@ -1,9 +1,16 @@
-
 import React, { useState } from "react";
 import Editor from "@monaco-editor/react";
 import { FaEdit } from "react-icons/fa";
 
-const Preview = ({ aicode, loading, onEdit, intent ,email }) => {
+const Preview = ({
+  aicode,
+  loading,
+  onEdit,
+  intent,
+  email,
+  selectedPage,
+   onDeploymentSuccess,
+}) => {
   const [showCode, setShowCode] = useState(false);
 
   // =========================================
@@ -16,9 +23,9 @@ const Preview = ({ aicode, loading, onEdit, intent ,email }) => {
 
   const [deploying, setDeploying] = useState(false);
 
-  const [deployError, setDeployError] = useState(""); 
+  const [deployError, setDeployError] = useState("");
 
-  const [pageName, setPageName] = useState(intent || "My AI Landing Page"); 
+  const [pageName, setPageName] = useState(intent || "My AI Landing Page");
 
   const [affiliateLink, setAffiliateLink] = useState("");
 
@@ -26,11 +33,9 @@ const Preview = ({ aicode, loading, onEdit, intent ,email }) => {
 
   const [copied, setCopied] = useState(false);
 
-
   // =========================================
   // DEPLOY LANDING PAGE — NEW
   // =========================================
-
 
   const handleDeploy = async () => {
     if (!aicode || deploying) return;
@@ -45,11 +50,12 @@ const Preview = ({ aicode, loading, onEdit, intent ,email }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: pageName.trim(), 
-          html: aicode, 
-          affiliateLink: affiliateLink.trim(), 
-          intent, 
-          email
+          name: pageName.trim(),
+          html: aicode,
+          affiliateLink: affiliateLink.trim(),
+          intent,
+          slug: selectedPage?.slug || null,
+          email,
         }),
       });
       const data = await response.json();
@@ -58,6 +64,15 @@ const Preview = ({ aicode, loading, onEdit, intent ,email }) => {
       }
 
       setDeployedURL(data.url);
+
+      // Immediately refresh the Landing Pages section
+      
+      if (onDeploymentSuccess) {
+        await onDeploymentSuccess({
+          ...data,
+          slug: data.slug || selectedPage?.slug,
+        });
+      }
     } catch (error) {
       // console.error("Deployment error:", error);
       setDeployError(error.message || "Something went wrong while deploying.");
@@ -424,7 +439,6 @@ const Preview = ({ aicode, loading, onEdit, intent ,email }) => {
                 ✕
               </button>
             </div>
-
 
             {/* Modal Body */}
 

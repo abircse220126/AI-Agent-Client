@@ -1,18 +1,10 @@
 import React, { useRef, useState, useEffect } from "react";
 import Preview from "../Preview/Preview";
 import EditorTools from "../../EditorTools/EditorTools";
+import DeleteLandingPageModal from "../DeleteLandingPageModal/DeleteLandingPageModal";
 // import LandingPageChart from "../LandingPageChart/LandingPageChart";
 
-import {
-  Eye,
-  Link2,
-  MoreHorizontal,
-  ExternalLink,
-  Trash2,
-  Edit3,
-  Copy,
-  Check,
-} from "lucide-react";
+import { Eye, Link2, Trash2, Edit3, Copy, Check } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -74,6 +66,13 @@ const Container = () => {
   const [selectedPage, setSelectedPage] = useState(null);
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const textareaRef = useRef(null);
+  const [textareaHeight, setTextareaHeight] = useState(56);
+  const ITEMS_PER_PAGE = 8;
 
   const userEmail = "demo@gmail.com";
 
@@ -98,7 +97,7 @@ const Container = () => {
       crypto: 8,
       loan: 9,
       finance: 12,
-      insurance: 11,
+      insurance: 19,
       travel: 7,
       dating: 9,
       health: 9,
@@ -196,6 +195,13 @@ const Container = () => {
 
     setPrompt("");
 
+    setTextareaHeight(56);
+
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "56px";
+      textareaRef.current.scrollTop = 0;
+    }
+
     // localStorage.removeItem("affilai_prompt");
 
     setTimeout(() => {
@@ -207,7 +213,6 @@ const Container = () => {
 
     setLoading(false);
   }
-
   // =====================================================
   // FORMAT DATE
   // =====================================================
@@ -248,7 +253,6 @@ const Container = () => {
 
     return date.toLocaleDateString();
   }
-
   // =====================================================
   // GET PAGE TITLE
   // =====================================================
@@ -294,6 +298,143 @@ const Container = () => {
       console.error("Failed to copy URL:", error);
     }
   }
+
+  // =====================================================
+  // EDIT EXISTING LANDING PAGE
+  // =====================================================
+  function handleEditPage(page) {
+    if (!page?.html) {
+      alert("Landing page HTML not found!");
+      return;
+    }
+
+    // Load selected page HTML into main Preview
+    Setaicode(page.html);
+
+    // Restore page information
+    setIntentState(page.intent || "");
+    setConversionScore(null);
+
+    // Open main Preview and Editor
+    setShowPreviewTop(true);
+    setIsEditing(true);
+
+    // Remember which page is being edited
+    setSelectedPage(page);
+
+    // Scroll to the main Preview
+    setTimeout(() => {
+      previewRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 200);
+  }
+
+  // Open delete confirmation modal
+  function handleDeleteClick(page) {
+    setDeleteTarget(page);
+  }
+
+  // Delete page after confirmation
+  async function confirmDeletePage() {
+    if (!deleteTarget?.slug || deleting) return;
+
+    try {
+      setDeleting(true);
+
+      const response = await fetch(
+        `${API_BASE_URL}/landing-pages/${encodeURIComponent(deleteTarget.slug)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: userEmail,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to delete landing page");
+      }
+
+      // Remove the deleted page from the UI
+      setLandingPages((previousPages) =>
+        previousPages.filter((page) => page.slug !== deleteTarget.slug),
+      );
+
+      setCurrentPage((previousPage) =>
+        Math.min(
+          previousPage,
+          Math.max(1, Math.ceil((landingPages.length - 1) / ITEMS_PER_PAGE)),
+        ),
+      );
+
+      // Clear the selected page if it was the one deleted
+      setSelectedPage((currentPage) =>
+        currentPage?.slug === deleteTarget.slug ? null : currentPage,
+      );
+
+      setDeleteTarget(null);
+    } catch (error) {
+      console.error("Delete landing page error:", error);
+      alert(error.message || "Failed to delete landing page.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  // Add or update a landing page immediately after deployment
+
+  async function handleDeploymentSuccess(deployedPage) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/landing-pages`);
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to refresh landing pages");
+      }
+
+      const matchedPages = (data.pages || []).filter(
+        (page) =>
+          page.email?.trim().toLowerCase() === userEmail.trim().toLowerCase(),
+      );
+
+      setLandingPages(matchedPages);
+
+      // If a new page was added, show the page containing it
+      const deployedSlug = deployedPage?.slug;
+
+      if (deployedSlug) {
+        const deployedIndex = matchedPages.findIndex(
+          (page) => page.slug === deployedSlug,
+        );
+
+        if (deployedIndex !== -1) {
+          setCurrentPage(Math.floor(deployedIndex / ITEMS_PER_PAGE) + 1);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to refresh landing pages:", error);
+    }
+  }
+  // =====================================================
+  // PAGINATION
+  // =====================================================
+
+  const totalPages = Math.ceil(landingPages.length / ITEMS_PER_PAGE);
+
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  const currentLandingPages = landingPages.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE,
+  );
 
   useEffect(() => {
     if (aicode) {
@@ -366,6 +507,8 @@ const Container = () => {
                   onEdit={() => setIsEditing(true)}
                   intent={intentState}
                   email={userEmail}
+                  selectedPage={selectedPage}
+                  onDeploymentSuccess={handleDeploymentSuccess}
                 />{" "}
                 {conversionScore && (
                   <div className="w-full max-w-3xl mx-auto mt-6 px-4">
@@ -390,9 +533,19 @@ const Container = () => {
                   <div className="w-full max-w-3xl mx-auto mt-12 px-4 relative">
                     <textarea
                       id="ai-command"
+                      ref={textareaRef}
                       value={prompt}
                       disabled={loading}
-                      onChange={(e) => setPrompt(e.target.value)}
+                      rows={1}
+                      onChange={(e) => {
+                        setPrompt(e.target.value);
+
+                        // Automatically adjust textarea height
+                        e.target.style.height = "56px";
+                        const nextHeight = Math.min(e.target.scrollHeight, 200);
+                        e.target.style.height = `${nextHeight}px`;
+                        setTextareaHeight(nextHeight);
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
@@ -402,60 +555,83 @@ const Container = () => {
                           }
                         }
                       }}
-                      placeholder="Type your command here... e.g., Create a modern portfolio website with dark theme"
-                      className="w-full h-10 sm:h-18 p-4 pr-14 rounded-xl bg-gray-900 border border-gray-700 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none transition-shadow shadow-sm hover:shadow-md"
-                    ></textarea>
+                      placeholder="Type your command here..."
+                      className="
+      block w-full min-h-[56px] max-h-[200px]
+      overflow-y-auto
+      p-4 pr-16
+      rounded-2xl
+      bg-gray-900 border border-gray-700
+      text-gray-200 placeholder-gray-500
+      focus:outline-none focus:ring-2 focus:ring-indigo-500
+      resize-none transition-all duration-150
+      shadow-sm hover:shadow-md
+    "
+                      style={{ height: `${textareaHeight}px` }}
+                    />
 
-                    {prompt && (
-                      <button
-                        onClick={getResponse}
-                        disabled={loading}
-                        className={`absolute bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full
-        bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg
-        transition-all duration-300
-        ${loading ? "cursor-not-allowed opacity-70" : "hover:scale-110"}`}
-                      >
-                        {loading ? (
-                          // Spinner icon
-                          <svg
-                            className="w-5 h-5 animate-spin"
-                            fill="none"
-                            viewBox="0 0 24 24"
+                    {/* Always visible arrow button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (prompt.trim() && !loading) {
+                          getResponse();
+                        }
+                      }}
+                      disabled={!prompt.trim() || loading}
+                      aria-label="Send prompt"
+                      className={`
+      absolute bottom-2 right-6
+      w-10 h-10
+      flex items-center justify-center
+      rounded-full
+      bg-gradient-to-r from-indigo-500 to-purple-600
+      text-white shadow-lg
+      transition-all duration-200
+      ${
+        !prompt.trim() || loading
+          ? "opacity-40 cursor-not-allowed"
+          : "hover:scale-110 cursor-pointer"
+      }
+    `}
+                    >
+                      {loading ? (
+                        <svg
+                          className="w-5 h-5 animate-spin"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
                             stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                            />
-
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                            />
-                          </svg>
-                        ) : (
-                          // Arrow icon
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M12 19V5m0 0l-7 7m7-7l7 7"
-                            />
-                          </svg>
-                        )}
-                      </button>
-                    )}
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 19V5m0 0l-7 7m7-7l7 7"
+                          />
+                        </svg>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>{" "}
@@ -488,8 +664,19 @@ const Container = () => {
                   <div className="w-full max-w-3xl mx-auto mt-12 px-4 relative">
                     <textarea
                       id="ai-command"
+                      ref={textareaRef}
+                      value={prompt}
                       disabled={loading}
-                      onChange={(e) => setPrompt(e.target.value)}
+                      rows={1}
+                      onChange={(e) => {
+                        setPrompt(e.target.value);
+
+                        // Automatically adjust textarea height
+                        e.target.style.height = "56px";
+                        const nextHeight = Math.min(e.target.scrollHeight, 200);
+                        e.target.style.height = `${nextHeight}px`;
+                        setTextareaHeight(nextHeight);
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
@@ -499,60 +686,83 @@ const Container = () => {
                           }
                         }
                       }}
-                      placeholder="Type your command here... e.g., Create a modern portfolio website with dark theme"
-                      className="w-full h-10 sm:h-18 p-4 pr-14 rounded-xl bg-gray-900 border border-gray-700 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none transition-shadow shadow-sm hover:shadow-md"
-                    ></textarea>
+                      placeholder="Type your command here..."
+                      className="
+      block w-full min-h-[56px] max-h-[200px]
+      overflow-y-auto
+      p-4 pr-16
+      rounded-2xl
+      bg-gray-900 border border-gray-700
+      text-gray-200 placeholder-gray-500
+      focus:outline-none focus:ring-2 focus:ring-indigo-500
+      resize-none transition-all duration-150
+      shadow-sm hover:shadow-md
+    "
+                      style={{ height: `${textareaHeight}px` }}
+                    />
 
-                    {prompt && (
-                      <button
-                        onClick={getResponse}
-                        disabled={loading}
-                        className={`absolute bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full
-        bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg
-        transition-all duration-300
-        ${loading ? "cursor-not-allowed opacity-70" : "hover:scale-110"}`}
-                      >
-                        {loading ? (
-                          // Spinner icon
-                          <svg
-                            className="w-5 h-5 animate-spin"
-                            fill="none"
-                            viewBox="0 0 24 24"
+                    {/* Always visible arrow button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (prompt.trim() && !loading) {
+                          getResponse();
+                        }
+                      }}
+                      disabled={!prompt.trim() || loading}
+                      aria-label="Send prompt"
+                      className={`
+      absolute bottom-2 right-6
+      w-10 h-10
+      flex items-center justify-center
+      rounded-full
+      bg-gradient-to-r from-indigo-500 to-purple-600
+      text-white shadow-lg
+      transition-all duration-200
+      ${
+        !prompt.trim() || loading
+          ? "opacity-40 cursor-not-allowed"
+          : "hover:scale-110 cursor-pointer"
+      }
+    `}
+                    >
+                      {loading ? (
+                        <svg
+                          className="w-5 h-5 animate-spin"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
                             stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                            />
-
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                            />
-                          </svg>
-                        ) : (
-                          // Arrow icon
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M12 19V5m0 0l-7 7m7-7l7 7"
-                            />
-                          </svg>
-                        )}
-                      </button>
-                    )}
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 19V5m0 0l-7 7m7-7l7 7"
+                          />
+                        </svg>
+                      )}
+                    </button>
                   </div>
                 </div>
                 <Preview
@@ -561,6 +771,8 @@ const Container = () => {
                   onEdit={() => setIsEditing(true)}
                   intent={intentState}
                   email={userEmail}
+                  selectedPage={selectedPage}
+                  onDeploymentSuccess={handleDeploymentSuccess}
                 />{" "}
               </div>{" "}
               {/* EDITOR */}{" "}
@@ -615,7 +827,8 @@ const Container = () => {
         gap-5
       "
             >
-              {landingPages.map((page) => {
+              {/* {landingPages.map((page) => { */}
+              {currentLandingPages.map((page) => {
                 const pageUrl = getLandingPageUrl(page);
 
                 return (
@@ -782,25 +995,20 @@ const Container = () => {
                         {/* Right actions */}
                         <div className="flex items-center gap-2">
                           {/* Edit */}
+
                           <button
                             type="button"
                             title="Edit Landing Page"
-                            onClick={() => {
-                              console.log("Edit page:", page);
-                              // এখানে তোমার edit logic বসাবে
-                            }}
+                            onClick={() => handleEditPage(page)}
                             className="
-      w-8
-      h-8
-      rounded-lg
-      flex
-      items-center
-      justify-center
-      text-gray-400
-      hover:text-indigo-400
-      hover:bg-indigo-500/10
-      transition
-    "
+    w-8 h-8
+    rounded-lg
+    flex items-center justify-center
+    text-gray-400
+    hover:text-indigo-400
+    hover:bg-indigo-500/10
+    transition
+  "
                           >
                             <Edit3 size={16} />
                           </button>
@@ -809,10 +1017,7 @@ const Container = () => {
                           <button
                             type="button"
                             title="Delete Landing Page"
-                            onClick={() => {
-                              console.log("Delete page:", page);
-                              // এখানে delete logic বসাবে
-                            }}
+                            onClick={() => handleDeleteClick(page)}
                             className="
       w-8
       h-8
@@ -858,6 +1063,50 @@ const Container = () => {
                 );
               })}
             </div>
+
+            {/* PAGINATION */}
+
+            {totalPages > 1 && (
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                {/* Page information */}
+                <p className="text-sm text-gray-400">
+                  Showing {startIndex + 1}–
+                  {Math.min(startIndex + ITEMS_PER_PAGE, landingPages.length)}{" "}
+                  of {landingPages.length} landing pages
+                </p>
+
+                {/* Pagination buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCurrentPage((previous) => Math.max(1, previous - 1))
+                    }
+                    disabled={currentPage === 1}
+                    className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Previous
+                  </button>
+
+                  <span className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-2 text-sm font-semibold text-indigo-300">
+                    {currentPage} / {totalPages}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCurrentPage((previous) =>
+                        Math.min(totalPages, previous + 1),
+                      )
+                    }
+                    disabled={currentPage === totalPages}
+                    className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
         )}
 
@@ -983,6 +1232,18 @@ const Container = () => {
             </div>
           </div>
         )}
+
+        {/* DELETE CONFIRMATION MODAL */}
+        <DeleteLandingPageModal
+          page={deleteTarget}
+          deleting={deleting}
+          onClose={() => {
+            if (!deleting) {
+              setDeleteTarget(null);
+            }
+          }}
+          onConfirm={confirmDeletePage}
+        />
       </div>
     </>
   );
