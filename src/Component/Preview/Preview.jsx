@@ -9,7 +9,7 @@ const Preview = ({
   intent,
   email,
   selectedPage,
-   onDeploymentSuccess,
+  onDeploymentSuccess,
 }) => {
   const [showCode, setShowCode] = useState(false);
 
@@ -66,7 +66,7 @@ const Preview = ({
       setDeployedURL(data.url);
 
       // Immediately refresh the Landing Pages section
-      
+
       if (onDeploymentSuccess) {
         await onDeploymentSuccess({
           ...data,
@@ -139,8 +139,13 @@ const Preview = ({
   return (
     <div className="w-full max-w-6xl mx-auto mt-16 px-4">
       {/* Header */}
-      <h2 className="text-center text-gray-200 text-lg sm:text-xl font-medium mb-4">
-        Your AI-Generated Website will appear here.
+
+      {/* <h2 className="text-center text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-purple-400 to-pink-400 mb-7">
+        Your AI-Generated Website Will Appear Here 
+      </h2> */}
+
+      <h2 className="text-center text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-purple-300 to-indigo-300 mb-7">
+        Your AI-Generated Website Will Appear Here 
       </h2>
 
       {/* Preview Container */}

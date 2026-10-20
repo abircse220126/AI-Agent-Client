@@ -97,7 +97,7 @@ const Container = () => {
       crypto: 8,
       loan: 9,
       finance: 12,
-      insurance: 19,
+      insurance: 20,
       travel: 7,
       dating: 9,
       health: 9,
@@ -151,16 +151,34 @@ const Container = () => {
     );
 
     // If AI forgot image → inject it
+
+    // if (!html.includes("{{HERO_IMAGE}}")) {
+    //   html = html.replace(
+    //     /<section[^>]*>/i,
+    //     (match) => `
+    //   ${match}
+    //   <div class="w-full h-[400px] md:h-[400px] lg:h-[460px] ">
+    //     <img
+    //       src="{{HERO_IMAGE}}"
+    //       class="w-full h-full object-cover rounded-xl"
+    //       loading="lazy"
+    //     />
+    //   </div>
+    // `,
+    //   );
+    // }
+
     if (!html.includes("{{HERO_IMAGE}}")) {
       html = html.replace(
         /<section[^>]*>/i,
         (match) => `
       ${match}
-      <div class="w-full h-[400px] md:h-[400px] lg:h-[460px] ">
-        <img 
-          src="{{HERO_IMAGE}}" 
-          class="w-full h-full object-contain rounded-xl" 
+      <div class="w-full h-[400px] md:h-[400px] lg:h-[460px] overflow-hidden">
+        <img
+          src="{{HERO_IMAGE}}"
+          class="block w-full h-auto object-cover rounded-xl" 
           loading="lazy"
+          alt="Not Found Relavent Image"
         />
       </div>
     `,
@@ -801,8 +819,15 @@ const Container = () => {
     ================================================= */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-white">
+                {/* <h2 className="text-2xl md:text-3xl font-bold text-white">
                   Your Landing Pages
+                </h2> */}
+
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">
+                  Your{" "}
+                  <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    Landing Pages
+                  </span>
                 </h2>
 
                 <p className="text-sm text-gray-400 mt-1">
