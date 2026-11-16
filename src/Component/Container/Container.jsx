@@ -92,7 +92,7 @@ const Container = () => {
 
   function generateHeroImage(intent) {
     const counts = {
-      casino: 10,
+      casino: 6,
       gambling: 10,
       crypto: 8,
       loan: 9,
@@ -841,7 +841,8 @@ const Container = () => {
 
             {/* =================================================
         LANDING PAGE GRID
-    ================================================= */}
+       ================================================= */}
+       
             <div
               className="
         grid

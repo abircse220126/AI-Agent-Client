@@ -33,6 +33,10 @@ const Preview = ({
 
   const [copied, setCopied] = useState(false);
 
+  const [networkName, setNetworkName] = useState("");
+
+  const [productName, setProductName] = useState("");
+
   // =========================================
   // DEPLOY LANDING PAGE — NEW
   // =========================================
@@ -53,6 +57,8 @@ const Preview = ({
           name: pageName.trim(),
           html: aicode,
           affiliateLink: affiliateLink.trim(),
+          networkName: networkName.trim(),
+          productName: productName.trim(),
           intent,
           slug: selectedPage?.slug || null,
           email,
@@ -145,7 +151,7 @@ const Preview = ({
       </h2> */}
 
       <h2 className="text-center text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-purple-300 to-indigo-300 mb-7">
-        Your AI-Generated Website Will Appear Here 
+        Your AI-Generated Website Will Appear Here
       </h2>
 
       {/* Preview Container */}
@@ -447,10 +453,10 @@ const Preview = ({
 
             {/* Modal Body */}
 
-            <div className="p-6">
+            {/* <div className="p-6">
               {!deployedURL ? (
                 <>
-                  {/* Landing Page Name */}
+                 
 
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Landing Page Name
@@ -477,7 +483,64 @@ const Preview = ({
               "
                   />
 
-                  {/* Affiliate Link */}
+  
+
+                  <label className="block text-sm font-medium text-gray-300 mt-5 mb-2">
+                    Affiliate Network Name
+                    <span className="text-gray-500 ml-1">(optional)</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    value={networkName}
+                    onChange={(e) => setNetworkName(e.target.value)}
+                    maxLength={100}
+                    placeholder="e.g. ClickBank, Impact, Digistore24"
+                    className="
+    w-full
+    px-4
+    py-3
+    rounded-xl
+    bg-slate-800
+    border
+    border-white/10
+    text-white
+    placeholder-gray-500
+    outline-none
+    focus:border-indigo-500
+  "
+                  />
+
+                
+
+                  
+                  <label className="block text-sm font-medium text-gray-300 mt-5 mb-2">
+                    Product / Offer Name
+                    <span className="text-gray-500 ml-1">(optional)</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    maxLength={150}
+                    placeholder="e.g. AI Writing Tool"
+                    className="
+    w-full
+    px-4
+    py-3
+    rounded-xl
+    bg-slate-800
+    border
+    border-white/10
+    text-white
+    placeholder-gray-500
+    outline-none
+    focus:border-indigo-500
+  "
+                  />
+
+          
 
                   <label className="block text-sm font-medium text-gray-300 mt-5 mb-2">
                     Affiliate Link
@@ -504,12 +567,13 @@ const Preview = ({
               "
                   />
 
+                  
+
                   <p className="text-xs text-gray-500 mt-2">
                     This will replace <code>{"{{AFFILIATE_LINK}}"}</code>{" "}
                     placeholders in your landing page.
                   </p>
 
-                  {/* Error */}
 
                   {deployError && (
                     <div
@@ -528,7 +592,7 @@ const Preview = ({
                     </div>
                   )}
 
-                  {/* Deploy */}
+               
 
                   <button
                     onClick={handleDeploy}
@@ -573,9 +637,7 @@ const Preview = ({
                   </button>
                 </>
               ) : (
-                /* =========================================
-             DEPLOY SUCCESS
-             ========================================= */
+            
 
                 <div className="text-center">
                   <div
@@ -603,8 +665,6 @@ const Preview = ({
                     Your landing page is now live.
                   </p>
 
-                  {/* Live URL */}
-
                   <div
                     className="
                 mt-6
@@ -619,8 +679,6 @@ const Preview = ({
                       {deployedURL}
                     </p>
                   </div>
-
-                  {/* Open + Copy */}
 
                   <div className="grid grid-cols-2 gap-3 mt-4">
                     <button
@@ -662,8 +720,6 @@ const Preview = ({
                     </button>
                   </div>
 
-                  {/* Close */}
-
                   <button
                     onClick={() => setShowDeployModal(false)}
                     className="
@@ -674,6 +730,306 @@ const Preview = ({
                 hover:text-white
                 text-sm
               "
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+            </div> */}
+
+            {/* Modal Body */}
+
+            <div className="p-6">
+              {!deployedURL ? (
+                <>
+                  {/* Landing Page Name */}
+
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Landing Page Name
+                  </label>
+
+                  <input
+                    type="text"
+                    value={pageName}
+                    onChange={(e) => setPageName(e.target.value)}
+                    maxLength={120}
+                    placeholder="My AI Landing Page"
+                    className="
+          w-full
+          px-4
+          py-3
+          rounded-xl
+          bg-slate-800
+          border
+          border-white/10
+          text-white
+          placeholder-gray-500
+          outline-none
+          focus:border-indigo-500
+        "
+                  />
+
+                  {/* Affiliate Network Name + Product / Offer Name */}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+                    {/* Affiliate Network Name */}
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Affiliate Network Name
+                        <span className="text-gray-500 ml-1">(optional)</span>
+                      </label>
+
+                      <input
+                        type="text"
+                        value={networkName}
+                        onChange={(e) => setNetworkName(e.target.value)}
+                        maxLength={100}
+                        placeholder="e.g. ClickBank"
+                        className="
+              w-full
+              px-4
+              py-3
+              rounded-xl
+              bg-slate-800
+              border
+              border-white/10
+              text-white
+              placeholder-gray-500
+              outline-none
+              focus:border-indigo-500
+            "
+                      />
+                    </div>
+
+                    {/* Product / Offer Name */}
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Product / Offer Name
+                        <span className="text-gray-500 ml-1">(optional)</span>
+                      </label>
+
+                      <input
+                        type="text"
+                        value={productName}
+                        onChange={(e) => setProductName(e.target.value)}
+                        maxLength={150}
+                        placeholder="Write Product/Offer Name"
+                        className="
+              w-full
+              px-4
+              py-3
+              rounded-xl
+              bg-slate-800
+              border
+              border-white/10
+              text-white
+              placeholder-gray-500
+              outline-none
+              focus:border-indigo-500
+            "
+                      />
+                    </div>
+                  </div>
+
+                  {/* Affiliate Link */}
+
+                  <label className="block text-sm font-medium text-gray-300 mt-5 mb-2">
+                    Affiliate Link
+                    <span className="text-gray-500 ml-1">(optional)</span>
+                  </label>
+
+                  <input
+                    type="url"
+                    value={affiliateLink}
+                    onChange={(e) => setAffiliateLink(e.target.value)}
+                    placeholder="https://example.com/offer"
+                    className="
+          w-full
+          px-4
+          py-3
+          rounded-xl
+          bg-slate-800
+          border
+          border-white/10
+          text-white
+          placeholder-gray-500
+          outline-none
+          focus:border-indigo-500
+        "
+                  />
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    This will replace <code>{"{{AFFILIATE_LINK}}"}</code>{" "}
+                    placeholders in your landing page.
+                  </p>
+
+                  {/* Error */}
+
+                  {deployError && (
+                    <div
+                      className="
+            mt-4
+            p-3
+            rounded-xl
+            bg-red-500/10
+            border
+            border-red-500/20
+            text-red-400
+            text-sm
+          "
+                    >
+                      {deployError}
+                    </div>
+                  )}
+
+                  {/* Deploy */}
+
+                  <button
+                    onClick={handleDeploy}
+                    disabled={deploying}
+                    className="
+          w-full
+          mt-6
+          flex
+          items-center
+          justify-center
+          gap-2
+          px-5
+          py-3
+          rounded-xl
+          bg-emerald-600
+          hover:bg-emerald-500
+          text-white
+          font-semibold
+          transition
+          disabled:opacity-50
+          disabled:cursor-not-allowed
+        "
+                  >
+                    {deploying ? (
+                      <>
+                        <span
+                          className="
+                w-4
+                h-4
+                border-2
+                border-white
+                border-t-transparent
+                rounded-full
+                animate-spin
+              "
+                        />
+                        Deploying...
+                      </>
+                    ) : (
+                      <>🚀 Deploy Landing Page</>
+                    )}
+                  </button>
+                </>
+              ) : (
+                /* =========================================
+       DEPLOY SUCCESS
+       ========================================= */
+
+                <div className="text-center">
+                  <div
+                    className="
+          w-14
+          h-14
+          mx-auto
+          flex
+          items-center
+          justify-center
+          rounded-full
+          bg-emerald-500/10
+          text-emerald-400
+          text-2xl
+        "
+                  >
+                    ✓
+                  </div>
+
+                  <h3 className="text-xl font-semibold text-white mt-4">
+                    Landing Page Deployed
+                  </h3>
+
+                  <p className="text-sm text-gray-400 mt-2">
+                    Your landing page is now live.
+                  </p>
+
+                  {/* Live URL */}
+
+                  <div
+                    className="
+          mt-6
+          p-4
+          rounded-xl
+          bg-slate-800
+          border
+          border-white/10
+        "
+                  >
+                    <p className="text-sm text-indigo-400 break-all text-left">
+                      {deployedURL}
+                    </p>
+                  </div>
+
+                  {/* Open + Copy */}
+
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <button
+                      onClick={() =>
+                        window.open(
+                          deployedURL,
+                          "_blank",
+                          "noopener,noreferrer",
+                        )
+                      }
+                      className="
+            px-4
+            py-3
+            rounded-xl
+            bg-indigo-600
+            hover:bg-indigo-500
+            text-white
+            text-sm
+            font-medium
+          "
+                    >
+                      Open Live Page
+                    </button>
+
+                    <button
+                      onClick={handleCopyURL}
+                      className="
+            px-4
+            py-3
+            rounded-xl
+            bg-slate-700
+            hover:bg-slate-600
+            text-white
+            text-sm
+            font-medium
+          "
+                    >
+                      {copied ? "Copied!" : "Copy URL"}
+                    </button>
+                  </div>
+
+                  {/* Close */}
+
+                  <button
+                    onClick={() => setShowDeployModal(false)}
+                    className="
+          w-full
+          mt-3
+          py-3
+          text-gray-400
+          hover:text-white
+          text-sm
+        "
                   >
                     Close
                   </button>

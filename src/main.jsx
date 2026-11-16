@@ -11,6 +11,7 @@ import Login from "./Component/Login/Login.jsx";
 import Home from "./Component/Home/Home.jsx";
 import DashboardLayout from "./Layout/DashboardLayout.jsx";
 import Facebook from "./Component/Ads/Facebook.jsx";
+import Analytics from "./Component/Analytics Component/Analytics/Analytics.jsx";
 
 const router = createBrowserRouter([
   {
@@ -51,9 +52,18 @@ const router = createBrowserRouter([
       {
         path:"/dashboard/ad-creative",
         Component:Facebook
+      },
+    ]
+  },
+  {
+    path:"/analytics",
+    Component:DashboardLayout,
+    children:[
+      {
+        index:true,
+        Component:Analytics
       }
     ]
-
   }
 ]);
 

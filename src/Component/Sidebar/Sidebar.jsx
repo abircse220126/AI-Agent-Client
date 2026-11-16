@@ -110,33 +110,7 @@ const Sidebar = ({ history, onSelectHistory, loadHistory }) => {
                   <span className="text-lg">Ad Creative</span>
                 </Link>
               </div>
-
-              {/* <ChevronDown
-                size={16}
-                className={`transition-transform ${showAds ? "rotate-180" : ""}`}
-              /> */}
             </div>
-
-            {/* Sub Ads */}
-            {/* {showAds && (
-              <div className="ml-8 mt-2 space-y-2 text-sm text-gray-400">
-                <div className="hover:text-white cursor-pointer">
-                  <Link to={"/dashboard/facebook"}> Facebook Ads</Link>
-                </div>
-
-                <div className="hover:text-white cursor-pointer">
-                  <Link> Google Ads</Link>
-                </div>
-
-                <div className="hover:text-white cursor-pointer">
-                  <Link>TikTok Ads</Link>
-                </div>
-
-                <div className="hover:text-white cursor-pointer">
-                  <Link>Native Ads</Link>
-                </div>
-              </div>
-            )} */}
           </div>
 
           {/* Templates Dropdown */}
@@ -183,8 +157,9 @@ const Sidebar = ({ history, onSelectHistory, loadHistory }) => {
               </div>
             )}
           </div>
-
-          <SidebarItem icon={<BarChart3 size={18} />} text="Analytics" />
+         <Link to={`/analytics`}>
+            <SidebarItem icon={<BarChart3 size={18} />} text="Analytics" />
+          </Link>
         </div>
 
         {/* History section  */}

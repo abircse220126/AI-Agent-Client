@@ -61,7 +61,6 @@ const LandingPageChart = ({ page }) => {
               color: "#fff",
             }}
           />
-
           <Bar dataKey="value" radius={[6, 6, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
